@@ -16,9 +16,9 @@ class Plotter:
         self.figure = figure
         dependant_menu = get_options(variables) #menu with all the variables of type float or int
         self.dep_options = Select(title="Dependant variable",value=dependant_menu[0], options=dependant_menu)
-        self.dep_min = TextInput(value="0", title="Minimum")
-        self.dep_max = TextInput(value="1", title="Maximum")
-        self.dep_iterations = Slider(start=1, end=10000, value=1, step=5, title="Iterations")
+        self.dep_min = TextInput(value="0",value_input="0", title="Minimum")
+        self.dep_max = TextInput(value="1",value_input="1", title="Maximum")
+        self.dep_iterations = Slider(start=1, end=10000, value=500, step=5, title="Iterations")
 
         res_dic = self.function(self.variables)  #run once to get structure of output menu
         res_menu = get_options(res_dic)

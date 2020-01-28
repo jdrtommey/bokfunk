@@ -25,7 +25,7 @@ def generate_config(variable_dict):
                         config_dict[key][config_var]['numeric'] = True
                     else:
                         config_dict[key][config_var]['numeric'] = False
-                    config_dict[key][config_var]['args'] = {'title':config_var,'value_input':str(variable_dict[key][variable][subvar]),'value':str(variable_dict[key][variable])}
+                    config_dict[key][config_var]['args'] = {'title':config_var,'value_input':str(variable_dict[key][variable][subvar]),'value':str(variable_dict[key][variable][subvar])}
             else:
                 config_dict[key][variable] = {}
                 config_dict[key][variable]['widget'] = 'textinput'   #default to textinput
