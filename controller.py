@@ -1,49 +1,39 @@
 """
 module takes a dictionary and converts it into a set of widgets with which to control the variables.
 """
-
-
 from bokeh.layouts import column, layout
 from bokeh.models import ColumnDataSource, Div, Select, Slider, TextInput
 from bokeh.models.widgets import Tabs, Panel
 
 widget_list = {'slider':Slider,'textinput':TextInput}
 
-class Controller:
-    def __init__(self,variable_dict,config_dict= None):
-        """
-        takes a dictionary and uses it to generate a set of widgets to control the function.
-        Parameters
-        ----------
-        variable_dict: dict
-            dictionary used to generate the widgets
-        config_dict: dict
-            matching dictionary which contains information about the type of widget to use
-        """
-
-        self.variable_dict = variable_dict
-        self.config_dict = config_dict
-
-        self.update()
-
-    def update(self):
-        """
-        updates the widgets
-        """
-        self.widgets = generate_widgets(self.config_dict)
-
 def generate_config(variable_dict):
     """
-    given a variable dictionary will generate a config dictionary which is used to generate the widgets
+    given a variable dictionary will generate a config dictionary which is then used to generate the widgets
     """
     config_dict={}
 
     for key in variable_dict:  ##generates a nested dictionary where each tab is from a dictionary
         config_dict[key] = {}
         for variable in  variable_dict[key]:
-            config_dict[key][variable] ={}
-            config_dict[key][variable]['widget'] = 'textinput'
-            config_dict[key][variable]['args'] = {'title':variable,'value':str(variable_dict[key][variable])}
+            if isinstance(variable_dict[key][variable],dict):
+                for subvar in variable_dict[key][variable]:
+                    config_var = variable+':'+subvar
+                    config_dict[key][config_var] = {}
+                    config_dict[key][config_var]['widget'] = 'textinput'   #default to textinput
+                    if isinstance(variable_dict[key][variable][subvar],float) or isinstance(variable_dict[key][variable][subvar],int):
+                        config_dict[key][config_var]['numeric'] = True
+                    else:
+                        config_dict[key][config_var]['numeric'] = False
+                    config_dict[key][config_var]['args'] = {'title':config_var,'value_input':str(variable_dict[key][variable][subvar]),'value':str(variable_dict[key][variable])}
+            else:
+                config_dict[key][variable] = {}
+                config_dict[key][variable]['widget'] = 'textinput'   #default to textinput
+                if isinstance(variable_dict[key][variable],float) or isinstance(variable_dict[key][variable],int):
+                    config_dict[key][variable]['numeric'] = True
+                else:
+                    config_dict[key][variable]['numeric'] = False
+                config_dict[key][variable]['args'] = {'title':variable,'value_input':str(variable_dict[key][variable]),'value':str(variable_dict[key][variable])}
     return config_dict
 
 def generate_widgets(config):
