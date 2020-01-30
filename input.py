@@ -31,39 +31,29 @@ class Inputter:
         res_dic = self.function(self.dictionary)  #run once to get structure of output menu
         res_menu = get_options(res_dic)
         self.res_options = Select(title="independant variable",value=res_menu[0], options=res_menu)
-
+        self.res_options.on_change('value',self._res_option_change)
         ##### Widgets for a linear variable
-        #self.linear_button = Button(label="Plot", button_type="success")
-        #self.linear_button.on_click(self._linear_button_click)
+        self.linear_button = Button(label="Plot", button_type="success")
+        self.linear_button.on_click(self._linear_button_click)
         self.linear_dep_min = TextInput(value="0",value_input="0", title="Minimum")
-        self.linear_dep_min.on_change('value_input',self._linear_button_click)
         self.linear_dep_max = TextInput(value="1",value_input="1", title="Maximum")
-        self.linear_dep_max.on_change('value_input',self._linear_button_click)
-        self.linear_dep_iterations = Slider(start=1, end=10000, value=500, step=5, title="Iterations")
-        self.linear_dep_iterations.on_change('value',self._linear_button_click)
+        self.linear_dep_iterations = Slider(start=1, end=1000, value=20, step=5, title="Iterations")
 
         ##### Widgets for file input
         self.file_file = TextInput(value="default", title="File path:")
-        self.file_file.on_change('value_input',self._file_button_click)
-        #self.file_button = Button(label="Foo", button_type="success")
-        #self.file_button.on_click(self._file_button_click)
+        self.file_button = Button(label="Foo", button_type="success")
+        self.file_button.on_click(self._file_button_click)
 
         ##### tabs widgets
-        linear_widgets = [self.dep_options,self.linear_dep_min,self.linear_dep_max,self.linear_dep_iterations]
+        linear_widgets = [self.dep_options,self.linear_dep_min,self.linear_dep_max,self.linear_dep_iterations,self.linear_button]
         linear_widgets_column = column(linear_widgets)
 
-        file_widgets = [self.file_file]
+        file_widgets = [self.file_file,self.file_button]
         file_widgets_column = column(file_widgets)
         panelz =[]
         panelz.append(Panel(child = linear_widgets_column,title='single variable'))
         panelz.append(Panel(child = file_widgets_column,title='File input'))
         self.plot_tabs = Tabs(tabs=panelz)
-
-        #####  widgets for plotting
-        self.plot_dep_select = Select(title="Dependant variable",value=dependant_menu[0], options=dependant_menu)
-        self.plot_button = Button(label = "Plot")
-        self.plot_button.on_click(self._plot_button_click)
-
 
         #### widgets for saving the output dataframe
         self.save_location = TextInput(value="default", title="Save path:")
@@ -98,18 +88,9 @@ class Inputter:
 
         self.plot_data = pd.DataFrame(results_overall)
 
-    def _update_dep_choice(self):
-        """
-        updates the choices of dependant variable
-        """
-        dep_mens=[]
-        for key in self.table_data:
-            if key in get_options(self.dictionary):
-                dep_mens.append(key)
-        self.plot_dep_select.options=dep_mens
 
     def _plot_button_click(self):
-        self._generate_plot_data()
+        #self._generate_plot_data()
         plot_y = self.res_options.value
         y = self.plot_data[plot_y]
 
@@ -124,25 +105,27 @@ class Inputter:
         self.datasource.data = dict(x=x,y=y)
         self.figure.line(x='x',y='y',source=self.datasource)
 
-    def _file_button_click(self,attr,old,new):
+    def _res_option_change(self,attr,old,new):
+        self._plot_button_click()
+
+    def _file_button_click(self):
         myDirname = os.path.normpath(self.file_file.value_input)
 
         self.table_data = pd.read_csv(myDirname)
-        self._update_dep_choice()
         self._update_table()
         self._generate_plot_data()
+        self._plot_button_click()
 
-    def _linear_button_click(self,attr,old,new):
+    def _linear_button_click(self):
         dependant_variable = self.dep_options.value
         min = eval(self.linear_dep_min.value_input)
         max = eval(self.linear_dep_max.value_input)
         iterations = self.linear_dep_iterations.value
         x = np.linspace(min,max,iterations)
         self.table_data = pd.DataFrame({dependant_variable:x})
-        self._update_dep_choice()
         self._update_table()
         self._generate_plot_data()
-
+        self._plot_button_click()
 
     def _save_click(self):
         export_loc = self.save_location.value_input
@@ -154,7 +137,7 @@ class Inputter:
         returns the layout of the classes widgets.
         """
 
-        view = column(self.plot_tabs,self.res_options,self.plot_button,self.my_table,self.save_location,self.save_button)
+        view = column(self.plot_tabs,self.res_options,self.my_table,self.save_location,self.save_button)
 
         return view
 
