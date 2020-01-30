@@ -14,6 +14,7 @@ class Plotter:
         self.variables = variables
         self.datasource = datasource
         self.figure = figure
+
         dependant_menu = get_options(variables) #menu with all the variables of type float or int
         self.dep_options = Select(title="Dependant variable",value=dependant_menu[0], options=dependant_menu)
         self.dep_min = TextInput(value="0",value_input="0", title="Minimum")
@@ -77,6 +78,9 @@ def get_options(dictionary):
     return menus
 
 def get_dictionary(dictionary,string_to_split,value):
+    """
+    given a dicrionaty and a flattened key will change the value in the dictionary
+    """
     split = string_to_split.split(':')
     depth = len(split)
     entry = dictionary
