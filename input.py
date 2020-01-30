@@ -7,7 +7,7 @@ from pandas.io.json._normalize import nested_to_record
 import copy
 import pandas as pd
 import numpy as np
-
+import os
 class Inputter:
     def __init__(self,function,datasource,figure,dictionary):
         """
@@ -109,6 +109,7 @@ class Inputter:
         self.plot_dep_select.options=dep_mens
 
     def _plot_button_click(self):
+        self._generate_plot_data()
         plot_y = self.res_options.value
         y = self.plot_data[plot_y]
 
@@ -124,7 +125,9 @@ class Inputter:
         self.figure.line(x='x',y='y',source=self.datasource)
 
     def _file_button_click(self,attr,old,new):
-        self.table_data = pd.read_csv(self.file_file.value_input)
+        myDirname = os.path.normpath(self.file_file.value_input)
+
+        self.table_data = pd.read_csv(myDirname)
         self._update_dep_choice()
         self._update_table()
         self._generate_plot_data()
