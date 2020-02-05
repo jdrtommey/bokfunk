@@ -19,8 +19,11 @@ class Looper:
         _update_looper(self.args_dictionary,flattened_key,value,self.sep)
         self.flattened_dict = nested_to_record(self.args_dictionary,sep=self.sep)
 
-    def get_value(self):
-        return self.function(self.args_dictionary)
+    def get_value(self,flatten = False):
+        res = self.function(self.args_dictionary)
+        if flatten ==True:
+            res = nested_to_record(res,sep=self.sep)
+        return res
 
     def get_inputs(self):
         return self.flattened_dict
@@ -59,4 +62,4 @@ def _update_looper(dictionary,flattened_key,value,sep):
     entry = dictionary
     for d in range(depth-1):
         entry = entry[split[d]]
-    entry[split[-1]] = value   
+    entry[split[-1]] = value
