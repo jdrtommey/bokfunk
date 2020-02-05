@@ -5,47 +5,92 @@ from bokeh.layouts import column, layout
 from bokeh.models import ColumnDataSource, Div, Select, Slider, TextInput
 from bokeh.models.widgets import Tabs, Panel
 
-widget_list = {'slider':Slider,'textinput':TextInput}
+WIDGET_LIST = {'slider':Slider,'textinput':TextInput}
 
-def generate_config(variable_dict):
-    """
-    given a variable dictionary will generate a config dictionary which is then used to generate the widgets
-    """
-    config_dict={}
+class Controller:
+    def __init__(self,looper,config={}):
+        """
+        class which contains widgets for updating the dictionary
+        """
+        self.looper = looper
+        self.given_config = config
+        self.total_config = self.gen_config()
+        self.gen_widgets()
+    def gen_config(self):
+        """
+        generates a dictionary which contains information about each of the widgets.
 
-    for key in variable_dict:  ##generates a nested dictionary where each tab is from a dictionary
-        config_dict[key] = {}
-        for variable in  variable_dict[key]:
-            if isinstance(variable_dict[key][variable],dict):
-                for subvar in variable_dict[key][variable]:
-                    config_var = variable+':'+subvar
-                    config_dict[key][config_var] = {}
-                    config_dict[key][config_var]['widget'] = 'textinput'   #default to textinput
-                    if isinstance(variable_dict[key][variable][subvar],float) or isinstance(variable_dict[key][variable][subvar],int):
-                        config_dict[key][config_var]['numeric'] = True
-                    else:
-                        config_dict[key][config_var]['numeric'] = False
-                    config_dict[key][config_var]['args'] = {'title':config_var,'value_input':str(variable_dict[key][variable][subvar]),'value':str(variable_dict[key][variable][subvar])}
+        dictionary of the form,
+        total_config:
+                flattened_key:
+                    name: 'textinput'
+                    numeric: True
+                    args:
+                        title: abcs
+                        value_input: 5
+                        value: 5
+        """
+        total_config = {}
+        for key in self.looper.flattened_dict:
+            value = self.looper.flattened_dict[key]
+            if key in self.given_config:
+                total_config[key] = self.given_config[key]
             else:
-                config_dict[key][variable] = {}
-                config_dict[key][variable]['widget'] = 'textinput'   #default to textinput
-                if isinstance(variable_dict[key][variable],float) or isinstance(variable_dict[key][variable],int):
-                    config_dict[key][variable]['numeric'] = True
+                total_config[key] = {'widget':'textinput','args':{'title':key,'value_input':str(value),'value':str(value)}}
+
+            if isinstance(value,float) or isinstance(value,int):
+                total_config[key]['numeric'] = True
+            else:
+                total_config[key]['numeric'] = False
+
+        return total_config
+
+    def gen_widgets(self):
+        """
+        populates the controllers widgets
+        """
+        self.widgets_list =[]
+        for key in self.total_config:
+            widget_type = self.total_config[key]['widget']
+            args = self.total_config[key]['args']
+            widget =  WIDGET_LIST[widget_type](**args)
+            if widget_type == 'textinput':
+                change_var = 'value_input'
+            elif widget_type == 'slider':
+                change_var = 'value'
+            widget.on_change(change_var,self.dict_update)
+
+            self.widgets_list.append(widget ) # generates a widget from the allowed list of widgets
+
+    def get_widgets(self):
+        """
+        takes the list of widgets and divides them into tabs. The depth says how deep inot the
+        """
+        panels = []
+
+        for key in self.looper.args_dictionary:
+            tab_widgets=[]
+            for widget in self.widgets_list:
+                if widget.title.split(':')[0] == key:
+                    tab_widgets.append(widget)
+            panels.append(Panel(child = column(tab_widgets),title=key))
+
+        tabs = Tabs(tabs=panels)
+        return  tabs
+
+    def update(self):
+        self.gen_widgets()
+        tabs = self.populate_frames()
+        return tabs
+
+
+    def dict_update(self,attr,old,new):
+        for widget in self.widgets_list:
+            if self.total_config[widget.title]['widget'] == 'textinput':
+                if self.total_config[widget.title]['numeric'] == True:
+                    value = float(eval(widget.value_input))
                 else:
-                    config_dict[key][variable]['numeric'] = False
-                config_dict[key][variable]['args'] = {'title':variable,'value_input':str(variable_dict[key][variable]),'value':str(variable_dict[key][variable])}
-    return config_dict
-
-def generate_widgets(config):
-    """
-    Takes a config dictionary and generates the widgets.
-    """
-    panels=[]
-    for i,key in enumerate(config):
-        widgets=[]
-        for variable in config[key]:
-            widgets.append( widget_list[config[key][variable]['widget']](**config[key][variable]['args']) )
-        panels.append(Panel(child = column(widgets),title=key))
-
-    tabs = Tabs(tabs=panels)
-    return tabs
+                    value = widget.value_input
+            elif self.total_config[widget.title]['widget'] == 'slider':
+                value = widget.value
+            self.looper.update_dictionary(widget.title,value)

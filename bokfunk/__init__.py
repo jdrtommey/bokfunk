@@ -1,2 +1,2 @@
 from .code import Looper
-from .app import Bokfunk
+from .app import BokehFunk

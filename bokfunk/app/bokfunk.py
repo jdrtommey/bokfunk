@@ -12,6 +12,8 @@ import pandas as pd
 
 funk = my_function
 variables = variable_dictionary
+
+
 config = generate_config(variables)
 tabs = generate_widgets(config)
 def dict_update(attr,old,new):
@@ -30,11 +32,10 @@ def dict_update(attr,old,new):
                     variables[panel.title][name[0]][name[1]] = float(eval(widget.value_input))
                 else:
                     variables[panel.title][name[0]][name[1]] = widget.value_input
-
-
 for panel in tabs.tabs:
     for widget in panel.child.children:
         widget.on_change('value_input',dict_update)
+
 
 p = figure(width=1000, height=600,y_axis_type="log",toolbar_location="below")
 hover=HoverTool(tooltips=[
